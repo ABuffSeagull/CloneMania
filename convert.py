@@ -32,6 +32,21 @@ def reverse_find_direction(arr: List[Note], direction: int) -> Note:
     exit(1)
 
 
+class NegativeBPMBlacklister:
+    def __init__(self):
+        self.blacklists = []
+
+    def add_blacklist(self, start_beat, end_beat):
+        duration = (end_beat - start_beat) * 2
+        self.blacklists.append([start_beat, start_beat + duration])
+
+    def is_blacklisted(self, beat):
+        for current_range in self.blacklists:
+            if beat >= current_range[0] and beat <= current_range[1]:
+                return True
+        return False
+
+
 parser = ArgumentParser()
 parser.add_argument("input_file")
 parser.add_argument("-o", "--output", default="notes.chart", help="path of output file")
@@ -95,6 +110,15 @@ for start, value in bpm_map.items():
 
 print("}", file=OUTPUT_FILE)
 
+blacklister = NegativeBPMBlacklister()
+last_negative_bpm_start = None
+for start, value in bpm_map.items():
+    if last_negative_bpm_start:
+        blacklister.add_blacklist(last_negative_bpm_start, start)
+        last_negative_bpm_start = None
+    if value < 0:
+        last_negative_bpm_start = start
+
 stops = cast(Match[str], re.search(r"#STOPS:(.*?);", stepfile, re.DOTALL)).group(1)
 stops = stops.strip().replace("\n", "")
 stops_map: Dict[float, float] = {}
@@ -145,7 +169,7 @@ for bar_index, single_bar in enumerate(bars):
                 note = reverse_find_direction(note_list, dir_index)
                 note.set_duration(RESOLUTION, bar_index * 4 + beat_index * metric)
 
-for note in note_list:
+for note in filter(lambda note: not blacklister.is_blacklisted(note.beat), note_list):
     tick = round(note.tick + tick_offset)
     print(f"\t{tick} = N {note.direction} {note.duration}", file=OUTPUT_FILE)
     print(f"\t{tick} = N 6 0", file=OUTPUT_FILE)
