@@ -46,7 +46,7 @@ print("[Song]\r\n{", file=OUTPUT_FILE)
 name = cast(Match[str], re.search(r"#TITLE:(.*?);", stepfile)).group(1)
 print(f'\tName = "{name}"', file=OUTPUT_FILE)
 
-offset = float(cast(Match[str], re.search(r"#OFFSET:(.*?);", stepfile)).group(1)) * 1000
+offset = float(cast(Match[str], re.search(r"#OFFSET:(.*?);", stepfile)).group(1)) * (-1)
 if offset > 0:
     print(f"\tOffset = {offset}", file=OUTPUT_FILE)
     offset = 0
@@ -95,7 +95,7 @@ for start, value in bpm_map.items():
 
 print("}", file=OUTPUT_FILE)
 
-stops = cast(Match[str], re.search(r"(?s)#STOPS:(.*?);", stepfile)).group(1)
+stops = cast(Match[str], re.search(r"#STOPS:(.*?);", stepfile, re.DOTALL)).group(1)
 stops = stops.strip().replace("\n", "")
 stops_map: Dict[float, float] = {}
 if len(stops) != 0:
