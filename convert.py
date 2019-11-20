@@ -8,7 +8,7 @@ from typing import List, Optional, Match, Dict, cast
 class Note:
     def __init__(
         self, resolution: float, beat: float, direction: int, duration: float = 0
-    ):
+    ) -> None:
         self.beat = beat
         self.direction = direction
         self.tick = round(resolution * beat)
@@ -33,14 +33,14 @@ def reverse_find_direction(arr: List[Note], direction: int) -> Note:
 
 
 class NegativeBPMBlacklister:
-    def __init__(self):
-        self.blacklists = []
+    def __init__(self) -> None:
+        self.blacklists: List[List[float]] = []
 
-    def add_blacklist(self, start_beat, end_beat):
+    def add_blacklist(self, start_beat: float, end_beat: float) -> None:
         duration = (end_beat - start_beat) * 2
         self.blacklists.append([start_beat, start_beat + duration])
 
-    def is_blacklisted(self, beat):
+    def is_blacklisted(self, beat: float) -> bool:
         for current_range in self.blacklists:
             if beat >= current_range[0] and beat <= current_range[1]:
                 return True
